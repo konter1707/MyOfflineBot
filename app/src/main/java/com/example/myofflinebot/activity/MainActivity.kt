@@ -80,19 +80,21 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
        val popapMenu=PopupMenu(this,view)
         popapMenu.inflate(R.menu.popap)
         popapMenu.setOnMenuItemClickListener { menuItem ->
-            when(menuItem.itemId){
-                R.id.redaction->{
+            when (menuItem.itemId) {
+                R.id.redaction -> {
+
 
                     true
                 }
-                R.id.copying->{
-                    val clipboardManager=getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clipData=ClipData.newPlainText("message",message.mesegaPipla)
+                R.id.copying -> {
+                    val clipboardManager =
+                        getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clipData = ClipData.newPlainText("message", message.mesegaPipla)
                     clipboardManager.setPrimaryClip(clipData)
-                    Toast.makeText(applicationContext,"Копировано",Toast.LENGTH_LONG).show()
+                    Toast.makeText(applicationContext, "Копировано", Toast.LENGTH_LONG).show()
                     true
                 }
-                R.id.deletion->{
+                R.id.deletion -> {
                     val manager = supportFragmentManager
                     val myDialog = MyDialog(this, mainPresenter, message)
                     myDialog.show(manager, "tag")

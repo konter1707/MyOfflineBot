@@ -44,9 +44,7 @@ class MainPresenter : MvpPresenter<MainView>() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 {
-
                     viewState.starOnClick("")
-
                 },
                 { error ->
                     viewState.onError("" + error)
