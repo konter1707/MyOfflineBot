@@ -82,7 +82,7 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
         popapMenu.setOnMenuItemClickListener { menuItem ->
             when(menuItem.itemId){
                 R.id.redaction->{
-                    
+
                     true
                 }
                 R.id.copying->{
