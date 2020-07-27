@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MyOfflineBot</string>
+    <string name="n_start">Здравствуйт! ;) \n Я ваш бот, для начала работы введите "Привет" или /start</string>
+</resources>
