@@ -16,6 +16,9 @@ interface MessageDao {
     @Delete
     fun deleteMessage(message: Message): Completable
 
+    @Query("DELETE FROM Message")
+    fun delite(): Completable
+
     @Query("SELECT * FROM Message")
     fun getMessage(): Single<List<Message>>
 }

@@ -4,9 +4,9 @@
         android:id="@+id/redaction"
         android:title="Редактировать" />
     <item
-        android:id="@+id/copying"
+        android:id="@+id/exit"
         android:title="Копировать" />
     <item
-        android:id="@+id/deletion"
+        android:id="@+id/delet"
         android:title="Удалить" />
 </menu>

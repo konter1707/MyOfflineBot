@@ -7,7 +7,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.myofflinebot.adapter.holder.InHolder
 import com.example.myofflinebot.adapter.holder.OutHolder
 import com.example.myofflinebot.data.db.entity.Message
-import com.example.myofflinebot.presentation.MainPresenter
 
 class MainAdapter(private val list: List<Message>, private  val delitListener: MainAdapter.OnDelitListener) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -30,21 +29,21 @@ class MainAdapter(private val list: List<Message>, private  val delitListener: M
         if (list[position].out == true) {
             val h: OutHolder = holder as OutHolder
             h.itemView.setOnClickListener { view ->
-                delitListener.onClick(list[position])
+                delitListener.onClickItem(list[position])
 
             }
             h.itemView.setOnLongClickListener { view->
-                delitListener.onLongClick(list[position],h.itemView)
+                delitListener.onLongClickItem(list[position],h.itemView)
                 return@setOnLongClickListener true
             }
             h.bind(list[position])
         } else {
             val h: InHolder = holder as InHolder
             h.itemView.setOnClickListener { view ->
-                delitListener.onClick(list[position])
+                delitListener.onClickItem(list[position])
             }
             h.itemView.setOnLongClickListener { view->
-                delitListener.onLongClick(list[position],h.itemView)
+                delitListener.onLongClickItem(list[position],h.itemView)
                 return@setOnLongClickListener true
             }
 
@@ -55,7 +54,7 @@ class MainAdapter(private val list: List<Message>, private  val delitListener: M
         return list.size
     }
     public interface OnDelitListener{
-        fun onClick(message: Message)
-        fun onLongClick(message: Message,view:View)
+        fun onClickItem(message: Message)
+        fun onLongClickItem(message: Message, view:View)
     }
 }

@@ -4,7 +4,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,6 +25,7 @@ import moxy.presenter.InjectPresenter
 
 
 class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListener {
+
     @InjectPresenter
     lateinit var mainPresenter: MainPresenter
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,17 +33,38 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
         setContentView(R.layout.main)
         registerForContextMenu(rv)
         setSupportActionBar(toolbar)
+        val mTag = arrayOf("/menu", "/calc", "/jokes")
+        val adapterEditText =
+            ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, mTag)
+        autoTv.setAdapter(adapterEditText)
+        autoTv.threshold = 1
         mainPresenter.setListener(this, true)
-        imageView.setOnClickListener { ImageView ->
-            val userText: String = editText.text.toString()
+        imageView.setOnClickListener { view ->
+            val userText: String = autoTv.text.toString()
             mainPresenter.addUserMessage(this, setMessage(true, userText))
             mainPresenter.setListener(this, true)
-            mainPresenter.getMessageBot(this,userText)
+            mainPresenter.getMessageBot(this, userText)
         }
     }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.delet -> {
+                mainPresenter.delitListMessaga(this)
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     override fun starOnClick(text: String) {
         mainPresenter.setListener(this, true)
-        editText.setText("")
+        autoTv.setText("")
     }
 
     override fun onError(text: String) {
@@ -48,12 +73,9 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
 
     override fun setList(message: List<Message>) {
         if (message.size == 0) {
-            linStart.visibility = View.VISIBLE
-            linMessage.visibility = View.GONE
+            mainPresenter.getMessageBot(this, "/menu")
             return;
         } else {
-            linStart.visibility = View.GONE
-            linMessage.visibility = View.VISIBLE
             rv.apply {
                 layoutManager = LinearLayoutManager(this@MainActivity).apply {
                     stackFromEnd = true
@@ -67,26 +89,28 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
     }
 
     override fun setMessageBot(otvetBot: String) {
-    mainPresenter.addBotMessage(this,setMessage(false,otvetBot))
-        mainPresenter.setListener(this,false)
+        mainPresenter.addBotMessage(this, setMessage(false, otvetBot))
+        mainPresenter.setListener(this, false)
     }
-    override fun onClick(message: Message) {
+
+    override fun delite(messageList: List<Message>) {
+    }
+
+    override fun onClickItem(message: Message) {
         val manager = supportFragmentManager
         val myDialog = MyDialog(this, mainPresenter, message)
         myDialog.show(manager, "tag")
     }
 
-    override fun onLongClick(message: Message,view:View) {
-       val popapMenu=PopupMenu(this,view)
+    override fun onLongClickItem(message: Message, view: View) {
+        val popapMenu = PopupMenu(this, view)
         popapMenu.inflate(R.menu.popap)
         popapMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.redaction -> {
-
-
                     true
                 }
-                R.id.copying -> {
+                R.id.exit -> {
                     val clipboardManager =
                         getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     val clipData = ClipData.newPlainText("message", message.mesegaPipla)
@@ -94,7 +118,7 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
                     Toast.makeText(applicationContext, "Копировано", Toast.LENGTH_LONG).show()
                     true
                 }
-                R.id.deletion -> {
+                R.id.delet -> {
                     val manager = supportFragmentManager
                     val myDialog = MyDialog(this, mainPresenter, message)
                     myDialog.show(manager, "tag")
@@ -105,7 +129,7 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
         }
         popapMenu.show()
     }
-    
+
     private fun setMessage(isOut: Boolean, text: String): Message {
         val message: Message = Message(0, isOut, text)
         return message

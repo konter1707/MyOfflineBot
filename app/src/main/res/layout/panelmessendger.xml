@@ -6,17 +6,17 @@
     android:orientation="horizontal"
     android:background="#ffffff">
 
-    <EditText
-        android:id="@+id/editText"
+    <AutoCompleteTextView
+        android:id="@+id/autoTv"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal|left"
         android:layout_marginLeft="15dp"
         android:layout_marginBottom="3dp"
         android:layout_weight="1.0"
         android:background="#ffffff"
         android:ems="10"
-        android:hint="Введите сообщение"
-        android:inputType="textMultiLine" />
+        android:hint="Введите сообщение" />
 <FrameLayout
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">

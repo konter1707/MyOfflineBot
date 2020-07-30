@@ -2,6 +2,7 @@ package com.example.myofflinebot.presentation
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.widget.Toast
 import com.example.myofflinebot.bots.BotJob
 import com.example.myofflinebot.data.db.MessageDB
 import com.example.myofflinebot.data.db.entity.Message
@@ -14,6 +15,20 @@ import moxy.MvpPresenter
 @InjectViewState
 @SuppressLint("CheckResult")
 class MainPresenter : MvpPresenter<MainView>() {
+    fun delitListMessaga(context: Context) {
+        MessageDB.getAppDateBase(context)!!.getMessageDao().delite()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                {
+                    setListener(context, true)
+                    Toast.makeText(context, "Удаленно все", Toast.LENGTH_LONG).show()
+                },
+                {
+
+                })
+    }
+
     fun addUserMessage(context: Context, message: Message) {
         MessageDB.getAppDateBase(context)!!.getMessageDao()!!.insertRx(message)
             .subscribeOn(Schedulers.io())
@@ -27,6 +42,7 @@ class MainPresenter : MvpPresenter<MainView>() {
                     viewState.onError("" + error)
                 })
     }
+
     fun getMessageBot(context: Context, userText: String) {
         BotJob(context).listBotJob(userText)
             .subscribeOn(Schedulers.newThread())
@@ -38,6 +54,7 @@ class MainPresenter : MvpPresenter<MainView>() {
             }
             )
     }
+
     fun addBotMessage(context: Context, message: Message) {
         MessageDB.getAppDateBase(context)!!.getMessageDao()!!.insertRx(message)
             .subscribeOn(Schedulers.io())

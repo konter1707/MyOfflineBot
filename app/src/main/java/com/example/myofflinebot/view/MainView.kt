@@ -12,4 +12,5 @@ interface MainView : MvpView {
     fun onError(text: String)
     fun setList(message: List<Message>)
     fun setMessageBot(otvetBot:String)
+    fun delite(messageList:List<Message>)
 }
