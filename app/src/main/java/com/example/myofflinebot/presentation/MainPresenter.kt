@@ -4,17 +4,17 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
 import com.example.myofflinebot.bots.BotJob
+import com.example.myofflinebot.comon.BasePresenter
 import com.example.myofflinebot.data.db.MessageDB
 import com.example.myofflinebot.data.db.entity.Message
 import com.example.myofflinebot.view.MainView
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import moxy.InjectViewState
-import moxy.MvpPresenter
 
 @InjectViewState
 @SuppressLint("CheckResult")
-class MainPresenter : MvpPresenter<MainView>() {
+class MainPresenter : BasePresenter<MainView>() {
     fun delitListMessaga(context: Context) {
         MessageDB.getAppDateBase(context)!!.getMessageDao().delite()
             .subscribeOn(Schedulers.io())
@@ -26,37 +26,38 @@ class MainPresenter : MvpPresenter<MainView>() {
                 },
                 {
 
-                })
+                }).autoDisposable()
     }
 
     fun addUserMessage(context: Context, message: Message) {
-        MessageDB.getAppDateBase(context)!!.getMessageDao()!!.insertRx(message)
+        MessageDB.getAppDateBase(context)!!.getMessageDao().insertRx(message)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 {
                     viewState.starOnClick("")
-
                 },
                 { error ->
                     viewState.onError("" + error)
-                })
+                }).autoDisposable()
     }
 
     fun getMessageBot(context: Context, userText: String) {
         BotJob(context).listBotJob(userText)
-            .subscribeOn(Schedulers.newThread())
+            .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                viewState.setMessageBot(it)
+                addBotMessage(context, Message(0,false, it))
+                setListener(context, false)
             }, {
-                viewState.setMessageBot("Произошла ошибка. Проверьте написанное!")
+                addBotMessage(context, Message(0,false, "Произошла ошибка. Проверьте написанное!"))
+                setListener(context, false)
             }
-            )
+            ).autoDisposable()
     }
 
     fun addBotMessage(context: Context, message: Message) {
-        MessageDB.getAppDateBase(context)!!.getMessageDao()!!.insertRx(message)
+        MessageDB.getAppDateBase(context)!!.getMessageDao().insertRx(message)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
@@ -65,7 +66,7 @@ class MainPresenter : MvpPresenter<MainView>() {
                 },
                 { error ->
                     viewState.onError("" + error)
-                })
+                }).autoDisposable()
     }
 
     fun setListener(context: Context, isOut: Boolean) {
@@ -74,24 +75,27 @@ class MainPresenter : MvpPresenter<MainView>() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { result ->
+                    if(result.isEmpty()){
+                        getMessageBot(context, "/menu")
+                    }
                     viewState.setList(result)
-                    if (isOut == false) {
+                    if (!isOut) {
                         return@subscribe
                     }
                 }, { error ->
                     viewState.onError("Произощла ошибка")
                 }
-            )
+            ).autoDisposable()
     }
 
     fun delitMessage(context: Context, message: Message) {
-        MessageDB.getAppDateBase(context)!!.getMessageDao()!!.deleteMessage(message)
+        MessageDB.getAppDateBase(context)!!.getMessageDao().deleteMessage(message)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 setListener(context, true)
             }, { error ->
                 viewState.onError("")
-            })
+            }).autoDisposable()
     }
 }

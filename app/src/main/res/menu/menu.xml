@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/delet"
-        android:title="Очистить все" />
+        android:id="@+id/clear"
+        android:title="@string/menuDelet" />
     <item
-        android:id="@+id/redaction"
-        android:title="Настройки" />
+        android:id="@+id/setings"
+        android:title="@string/menuSetings" />
     <item
         android:id="@+id/exit"
-        android:title="Выход" />
+        android:title="@string/menuExit" />
 </menu>

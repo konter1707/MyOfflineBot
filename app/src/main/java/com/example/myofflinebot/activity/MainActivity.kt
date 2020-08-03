@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.PopupMenu
 import android.widget.Toast
@@ -23,7 +24,6 @@ import kotlinx.android.synthetic.main.panelmessendger.*
 import moxy.MvpAppCompatActivity
 import moxy.presenter.InjectPresenter
 
-
 class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListener {
 
     @InjectPresenter
@@ -33,33 +33,22 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
         setContentView(R.layout.main)
         registerForContextMenu(rv)
         setSupportActionBar(toolbar)
+        mainPresenter.setListener(this, true)
+        imageView.setOnClickListener { view ->
+            val userText: String = autoTv.text.toString()
+            mainPresenter.addUserMessage(this, setMessage(true, userText))
+            mainPresenter.getMessageBot(this, userText)
+        }
         val mTag = arrayOf("/menu", "/calc", "/jokes")
         val adapterEditText =
             ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, mTag)
         autoTv.setAdapter(adapterEditText)
         autoTv.threshold = 1
-        mainPresenter.setListener(this, true)
-        imageView.setOnClickListener { view ->
-            val userText: String = autoTv.text.toString()
+        autoTv.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
+            val userText = adapterView.getItemAtPosition(i).toString()
             mainPresenter.addUserMessage(this, setMessage(true, userText))
-            mainPresenter.setListener(this, true)
             mainPresenter.getMessageBot(this, userText)
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.menu, menu)
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.delet -> {
-                mainPresenter.delitListMessaga(this)
-            }
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     override fun starOnClick(text: String) {
@@ -72,10 +61,6 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
     }
 
     override fun setList(message: List<Message>) {
-        if (message.size == 0) {
-            mainPresenter.getMessageBot(this, "/menu")
-            return;
-        } else {
             rv.apply {
                 layoutManager = LinearLayoutManager(this@MainActivity).apply {
                     stackFromEnd = true
@@ -85,20 +70,51 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
                     adapter = MainAdapter(message, this@MainActivity)
                 }
             }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.clear -> {
+                val manager = supportFragmentManager
+                val myDialog = MyDialog(
+                    this,
+                    mainPresenter,
+                    setMessage(false, ""),
+                    "Очистить все",
+                    "Вы точно хотите очистить все?"
+                )
+                myDialog.show(manager, "tag")
+            }
+            R.id.exit -> {
+                val manager = supportFragmentManager
+                val myDialog = MyDialog(
+                    this,
+                    mainPresenter,
+                    setMessage(false, ""),
+                    "Выход",
+                    "Вы точно хотите выйти?"
+                )
+                myDialog.show(manager, "tag")
+            }
         }
-    }
-
-    override fun setMessageBot(otvetBot: String) {
-        mainPresenter.addBotMessage(this, setMessage(false, otvetBot))
-        mainPresenter.setListener(this, false)
-    }
-
-    override fun delite(messageList: List<Message>) {
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onClickItem(message: Message) {
         val manager = supportFragmentManager
-        val myDialog = MyDialog(this, mainPresenter, message)
+        val myDialog = MyDialog(
+            this,
+            mainPresenter,
+            message,
+            "Удалить",
+            "Вы точно хотите удалить это сообщение"
+        )
         myDialog.show(manager, "tag")
     }
 
@@ -107,10 +123,10 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
         popapMenu.inflate(R.menu.popap)
         popapMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.redaction -> {
+                R.id.edit -> {
                     true
                 }
-                R.id.exit -> {
+                R.id.copy -> {
                     val clipboardManager =
                         getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     val clipData = ClipData.newPlainText("message", message.mesegaPipla)
@@ -118,9 +134,15 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
                     Toast.makeText(applicationContext, "Копировано", Toast.LENGTH_LONG).show()
                     true
                 }
-                R.id.delet -> {
+                R.id.popapDelet -> {
                     val manager = supportFragmentManager
-                    val myDialog = MyDialog(this, mainPresenter, message)
+                    val myDialog = MyDialog(
+                        this,
+                        mainPresenter,
+                        message,
+                        "Удалить",
+                        "Вы точно хотите удалить это сообщение"
+                    )
                     myDialog.show(manager, "tag")
                     true
                 }
@@ -131,7 +153,6 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
     }
 
     private fun setMessage(isOut: Boolean, text: String): Message {
-        val message: Message = Message(0, isOut, text)
-        return message
+        return Message(0, isOut, text)
     }
 }

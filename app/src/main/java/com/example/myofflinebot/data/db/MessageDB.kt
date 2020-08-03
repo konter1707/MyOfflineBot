@@ -25,9 +25,5 @@ abstract class MessageDB : RoomDatabase() {
             }
             return INSTANCE
         }
-
-        fun destroyDataBase() {
-            INSTANCE = null
-        }
     }
 }
