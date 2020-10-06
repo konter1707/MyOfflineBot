@@ -10,7 +10,6 @@ import com.example.myofflinebot.data.db.entity.Message
 @Database(entities = [Message::class], version = 1)
 abstract class MessageDB : RoomDatabase() {
     abstract fun getMessageDao(): MessageDao
-
     companion object {
         var INSTANCE: MessageDB? = null
         fun getAppDateBase(context: Context): MessageDB? {

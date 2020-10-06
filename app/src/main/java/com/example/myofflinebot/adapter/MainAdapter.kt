@@ -30,7 +30,6 @@ class MainAdapter(private val list: List<Message>, private  val delitListener: O
             val h: OutHolder = holder as OutHolder
             h.itemView.setOnClickListener { view ->
                 delitListener.onClickItem(list[position])
-
             }
             h.itemView.setOnLongClickListener { view->
                 delitListener.onLongClickItem(list[position],h.itemView)

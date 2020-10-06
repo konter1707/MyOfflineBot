@@ -1,8 +1,14 @@
 package com.example.myofflinebot.activity
 
+import android.app.Activity
+import android.app.WallpaperManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -14,6 +20,8 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myofflinebot.R
 import com.example.myofflinebot.adapter.MainAdapter
+import com.example.myofflinebot.bots.BotJob
+import com.example.myofflinebot.comon.CustomSharedPreferens
 import com.example.myofflinebot.data.db.entity.Message
 import com.example.myofflinebot.fragment.MyDialog
 import com.example.myofflinebot.presentation.MainPresenter
@@ -24,22 +32,23 @@ import kotlinx.android.synthetic.main.panelmessendger.*
 import moxy.MvpAppCompatActivity
 import moxy.presenter.InjectPresenter
 
-class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListener {
-
+class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListener,
+    View.OnClickListener {
     @InjectPresenter
     lateinit var mainPresenter: MainPresenter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main)
         registerForContextMenu(rv)
-        setSupportActionBar(toolbar)
-        mainPresenter.setListener(this, true)
-        imageView.setOnClickListener { view ->
-            val userText: String = autoTv.text.toString()
-            mainPresenter.addUserMessage(this, setMessage(true, userText))
-            mainPresenter.getMessageBot(this, userText)
+        when (CustomSharedPreferens(BotJob.TAG_BOT).getValueSP(this)) {
+            mTag[0] -> toolbar.title = "Меню"
+            mTag[1] -> toolbar.title = "Калькулятор"
+            mTag[2] -> toolbar.title = "Анекдоты"
         }
-        val mTag = arrayOf("/menu", "/calc", "/jokes")
+        setSupportActionBar(toolbar)
+        mainPresenter.setListener(this)
+        send.setOnClickListener(this)
+        galireya.setOnClickListener(this)
         val adapterEditText =
             ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, mTag)
         autoTv.setAdapter(adapterEditText)
@@ -51,8 +60,22 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
         }
     }
 
-    override fun starOnClick(text: String) {
-        mainPresenter.setListener(this, true)
+    override fun onClick(view: View?) {
+        when (view?.id) {
+            R.id.galireya -> {
+                val photoPickerIntent = Intent(Intent.ACTION_PICK)
+                photoPickerIntent.type = "image/*"
+                startActivityForResult(photoPickerIntent, GALLERY_REQUEST)
+            }
+            R.id.send -> {
+                val userText: String = autoTv.text.toString()
+                mainPresenter.addUserMessage(this, setMessage(true, userText))
+                mainPresenter.getMessageBot(this, userText)
+            }
+        }
+    }
+
+    override fun starOnClick() {
         autoTv.setText("")
     }
 
@@ -61,15 +84,31 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
     }
 
     override fun setList(message: List<Message>) {
-            rv.apply {
-                layoutManager = LinearLayoutManager(this@MainActivity).apply {
-                    stackFromEnd = true
-                }
-
-                rv.apply {
-                    adapter = MainAdapter(message, this@MainActivity)
-                }
+        rv.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity).apply {
+                stackFromEnd = true
             }
+            rv.apply {
+                adapter = MainAdapter(message, this@MainActivity)
+            }
+        }
+    }
+
+    override fun setTitleToolbar(titleToolbar: String) {
+        toolbar.title = titleToolbar
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK) {
+            val imageUri: Uri? = data!!.data
+            val imageStream = contentResolver.openInputStream(imageUri!!)!!
+            val selectImageView: Bitmap = BitmapFactory.decodeStream(imageStream)
+            val mWM = WallpaperManager.getInstance(this)
+            mWM.setBitmap(selectImageView)
+            Toast.makeText(this, "Ваши обои установлены", Toast.LENGTH_LONG).show()
+        }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -123,10 +162,23 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
         popapMenu.inflate(R.menu.popap)
         popapMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.edit -> {
+                R.id.popapEdit -> {
+                    popapEdit.visibility = View.VISIBLE
+                    galireya.visibility = View.GONE
+                    send.visibility = View.GONE
+                    autoTv.setText(message.mesegaPipla)
+                    popapEdit.setOnClickListener{
+                        val editMessage = autoTv.text.toString()
+                        mainPresenter.updateMessage(this, editMessage, message.id)
+                        autoTv.setText("")
+                        popapEdit.visibility = View.GONE
+                        galireya.visibility = View.VISIBLE
+                        send.visibility = View.VISIBLE
+                    }
                     true
+
                 }
-                R.id.copy -> {
+                R.id.popapCopy -> {
                     val clipboardManager =
                         getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     val clipData = ClipData.newPlainText("message", message.mesegaPipla)
@@ -154,5 +206,9 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
 
     private fun setMessage(isOut: Boolean, text: String): Message {
         return Message(0, isOut, text)
+    }
+    companion object{
+        const val GALLERY_REQUEST: Int = 1
+        val mTag = arrayOf("/menu", "/calc", "/jokes")
     }
 }

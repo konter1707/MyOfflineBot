@@ -7,10 +7,12 @@ import moxy.MvpView
 
 open class BasePresenter<T:MvpView>:MvpPresenter<T>() {
     private val subs=CompositeDisposable()
-    protected fun Disposable.autoDisposable(){
+    protected  fun Disposable.autoDisposable(){
         subs.add(this)
     }
-
+    protected fun dispose(){
+        subs.dispose()
+    }
     override fun onDestroy() {
         subs.clear()
         super.onDestroy()

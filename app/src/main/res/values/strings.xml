@@ -6,4 +6,6 @@
     <string name="menuExit">Выход</string>
     <string name="popapEdit">Редактировать</string>
     <string name="popapCopy">Копировать</string>
+    <string name="delete">Удалить</string>
+    <string name="hintACTV">Введите сообщение</string>
 </resources>

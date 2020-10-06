@@ -1,49 +1,47 @@
 package com.example.myofflinebot.bots
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.SharedPreferences
+import com.example.myofflinebot.comon.CustomSharedPreferens
+import com.example.myofflinebot.presentation.MainPresenter
 import io.reactivex.Single
-import org.jsoup.Jsoup
+import io.reactivex.SingleEmitter
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import javax.script.ScriptEngineManager
 import javax.script.ScriptException
-import kotlin.random.Random
 
-class BotJob(context: Context) {
-    val PRIVATE_MODE: Int = 0
-    val PREF_NAME: String = "name_tag"
-    val sharedPref: SharedPreferences = context.getSharedPreferences(PREF_NAME, PRIVATE_MODE)
-    fun listBotJob(text: String): Single<String> {
+@SuppressLint("CheckResult")
+class BotJob(val context: Context) {
+    fun listBotJob(text: String, mainPresenter: MainPresenter): Single<String> {
         return Single.create { subsciber ->
-            if (isText(text)) {
-                if (getValueText("tag").equals(text)) {
-                    if (getValueText("tag").equals("/menu")) {
-                        subsciber.onSuccess("Вы в меню")
-                        return@create
-                    }
+            val valueSP = tagCustomSP0.getValueSP(context)
+            if (isTag(text)) {
+                if (valueSP == text && valueSP != "/menu") {
                     subsciber.onSuccess("Вы уже находитесь тут. Что бы перейти в меню введите тэг /menu")
                     return@create
                 } else {
-                    save("tag", text)
-                    if (text.trim().equals("/menu")) {
+                    tagCustomSP0.save(context, text)
+                    if (text.trim() == "/menu" && valueSP == "/menu") {
+                        mainPresenter.setTitleToolbar("Меню")
                         subsciber.onSuccess("Вы в меню. \n 1. Калькулятор \n 2. Анекдоты")
                         return@create
-                    } else if (text.trim().equals("/calc")) {
+                    } else if (text.trim() == "/calc") {
                         subsciber.onSuccess("Вы перешли в калькулятор. \n Введите свой пример")
+                        mainPresenter.setTitleToolbar("Калькулятор")
                         return@create
-                    } else if (text.trim().equals("/jokes")) {
-                        subsciber.onSuccess(
-                            ("Вы перешли в анекдоты. \n На какую тему вы хотите смотреть анекдоты?" +
-                                    " Если на любую тему, то тогда так и напишите любой")
-                        )
+                    } else if (text.trim() == "/jokes") {
+                        mainPresenter.setTitleToolbar("Анекдоты")
+                        getTagJokes(subsciber)
                     }
                 }
             } else {
-                if (getValueText("tag").equals("/calc")) {
+                if (valueSP == "/calc") {
                     try {
-                        val manadger = ScriptEngineManager()
-                        val engine = manadger.getEngineByName("rhino")
-                        val otvet = engine.eval(text).toString()
-                        val floatResult: Float = otvet.toFloat()
+                        val manager = ScriptEngineManager()
+                        val engine = manager.getEngineByName("rhino")
+                        val answer = engine.eval(text).toString()
+                        val floatResult: Float = answer.toFloat()
                         val intResult = floatResult.toInt()
                         val displayedResult =
                             if (floatResult - intResult == 0f) "" + intResult else "" + floatResult
@@ -55,29 +53,56 @@ class BotJob(context: Context) {
                         subsciber.onError(numberFormat)
                     }
                 }
-                if (getValueText("tag").equals("/jokes") && text.trim()
-                        .equals("Любой") || text.trim().equals("Да")
-                ) {
-                    val randomNumber = Random.nextInt(0, 3127)
-                    val doc = Jsoup.connect("https://4tob.ru/anekdots/" + randomNumber).get()
-                    val element = doc.select("div.text")
-                    subsciber.onSuccess(element.text() + "\n Ещё?")
+                if (valueSP == "/jokes") {
+                    ParseJokes(context).parseJokes(text)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeOn(Schedulers.io())
+                        .subscribe({
+                            subsciber.onSuccess(it)
+                            return@subscribe
+                        }, {
+                            subsciber.onError(it)
+                            return@subscribe
+                        })
                 }
             }
         }
     }
 
-    private fun isText(text: String): Boolean {
-        return text.trim()[0].equals('/')
+    private fun getTagJokes(subscriber: SingleEmitter<String>) {
+        var textTag: String
+        val value = CustomSharedPreferens(LIST_TAG_ANECDOTE).getValueSP(context)
+        if (value == "0") {
+            ParseJokes(context).setTagJokes()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe({
+                    val strBuilder = StringBuilder()
+                    it.split(",").forEach {
+                        textTag = it.split(":")[0]
+                        strBuilder.append(textTag.plus("\n"))
+                    }
+                    subscriber.onSuccess(strBuilder.toString())
+                }, {
+                    subscriber.onError(it)
+                })
+        } else {
+            val strBuilder = StringBuilder()
+            value.split(",").forEach {
+                textTag = it.split(":")[0]
+                strBuilder.append(textTag.plus("\n"))
+            }
+            subscriber.onSuccess(strBuilder.toString())
+        }
     }
 
-    fun save(KEY_NAME: String, text: String) {
-        val editor: SharedPreferences.Editor = sharedPref.edit()
-        editor.putString(KEY_NAME, text)
-        editor.apply()
+    private fun isTag(text: String): Boolean {
+        return text.trim()[0] == '/'
     }
 
-    fun getValueText(KEY_NAME: String): String {
-        return sharedPref.getString(KEY_NAME, "/calc").toString()
+    companion object {
+        const val TAG_BOT: Int = 0
+        const val LIST_TAG_ANECDOTE: Int = 1
+        private val tagCustomSP0 = CustomSharedPreferens(TAG_BOT)
     }
 }

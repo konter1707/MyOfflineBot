@@ -1,8 +1,7 @@
 package com.example.myofflinebot.presentation
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.widget.Toast
+import com.example.myofflinebot.activity.MainActivity
 import com.example.myofflinebot.bots.BotJob
 import com.example.myofflinebot.comon.BasePresenter
 import com.example.myofflinebot.data.db.MessageDB
@@ -13,89 +12,102 @@ import io.reactivex.schedulers.Schedulers
 import moxy.InjectViewState
 
 @InjectViewState
-@SuppressLint("CheckResult")
-class MainPresenter : BasePresenter<MainView>() {
-    fun delitListMessaga(context: Context) {
-        MessageDB.getAppDateBase(context)!!.getMessageDao().delite()
-            .subscribeOn(Schedulers.io())
+class MainPresenter() : BasePresenter<MainView>() {
+    fun updateMessage(context: Context, messagePeople: String, id: Long){
+        MessageDB.getAppDateBase(context)!!.getMessageDao().updateMessage(messagePeople, id)
             .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
             .subscribe(
                 {
-                    setListener(context, true)
-                    Toast.makeText(context, "Удаленно все", Toast.LENGTH_LONG).show()
-                },
-                {
+                    setListener(context)
+                }, {
 
-                }).autoDisposable()
+                }
+            ).autoDisposable()
     }
+    fun deleteListMessage(context: Context) {
+        MessageDB.getAppDateBase(context)!!.getMessageDao().delite()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                {
+                    setListener(context)
+                },
+                {}).autoDisposable()
+    }
+
 
     fun addUserMessage(context: Context, message: Message) {
         MessageDB.getAppDateBase(context)!!.getMessageDao().insertRx(message)
-            .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
             .subscribe(
                 {
-                    viewState.starOnClick("")
+                    viewState.starOnClick()
+                    setListener(context)
                 },
                 { error ->
                     viewState.onError("" + error)
                 }).autoDisposable()
     }
 
+
     fun getMessageBot(context: Context, userText: String) {
-        BotJob(context).listBotJob(userText)
-            .subscribeOn(Schedulers.io())
+        BotJob(context).listBotJob(userText, this)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                addBotMessage(context, Message(0,false, it))
-                setListener(context, false)
+                addBotMessage(context, Message(0, false, it))
             }, {
-                addBotMessage(context, Message(0,false, "Произошла ошибка. Проверьте написанное!"))
-                setListener(context, false)
+                addBotMessage(context, Message(0, false, it.message.toString()))
             }
             ).autoDisposable()
     }
 
-    fun addBotMessage(context: Context, message: Message) {
+    private fun addBotMessage(context: Context, message: Message) {
         MessageDB.getAppDateBase(context)!!.getMessageDao().insertRx(message)
-            .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
             .subscribe(
                 {
-                    viewState.starOnClick("")
+
+                    viewState.starOnClick()
+                    setListener(context)
                 },
                 { error ->
                     viewState.onError("" + error)
                 }).autoDisposable()
     }
 
-    fun setListener(context: Context, isOut: Boolean) {
+    fun setListener(context: Context) {
         MessageDB.getAppDateBase(context)!!.getMessageDao().getMessage()
-            .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
             .subscribe(
                 { result ->
-                    if(result.isEmpty()){
-                        getMessageBot(context, "/menu")
-                    }
-                    viewState.setList(result)
-                    if (!isOut) {
+                    if (result.isEmpty()) {
+                        getMessageBot(context, MainActivity.mTag[0])
                         return@subscribe
                     }
+                    viewState.setList(result)
                 }, { error ->
                     viewState.onError("Произощла ошибка")
                 }
             ).autoDisposable()
     }
 
-    fun delitMessage(context: Context, message: Message) {
+    fun deleteMessage(context: Context, message: Message) {
         MessageDB.getAppDateBase(context)!!.getMessageDao().deleteMessage(message)
-            .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
             .subscribe({
-                setListener(context, true)
+                setListener(context)
             }, { error ->
                 viewState.onError("")
             }).autoDisposable()
     }
+
+    fun setTitleToolbar(titleToolbar: String) {
+        viewState.setTitleToolbar(titleToolbar)
+    }
 }
+

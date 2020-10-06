@@ -8,7 +8,7 @@ import com.example.myofflinebot.activity.MainActivity
 import com.example.myofflinebot.data.db.entity.Message
 import com.example.myofflinebot.presentation.MainPresenter
 
-class MyDialog(activity: MainActivity, mainPresenter: MainPresenter, message: Message,val title:String,val messageText:String) :
+class MyDialog(mainPresenter: MainPresenter, message: Message,val title:String,val messageText:String) :
     DialogFragment() {
     private val c = context;
     private val presenter = mainPresenter
@@ -19,8 +19,8 @@ class MyDialog(activity: MainActivity, mainPresenter: MainPresenter, message: Me
             .setMessage(messageText)
             .setPositiveButton("Да") { _, id ->
                 when(title){
-                    "Удалить" ->  presenter.delitMessage(activity!!.applicationContext, mes)
-                    "Очистить все"->  presenter.delitListMessaga(activity!!.applicationContext)
+                    "Удалить" ->  presenter.deleteMessage(activity!!.applicationContext, mes)
+                    "Очистить все"->  presenter.deleteListMessage(activity!!.applicationContext)
                     "Выход"-> activity!!.finish()
                 }
             }

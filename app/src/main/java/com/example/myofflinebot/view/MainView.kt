@@ -8,7 +8,8 @@ import moxy.viewstate.strategy.StateStrategyType
 
 @StateStrategyType(AddToEndSingleStrategy::class)
 interface MainView : MvpView {
-    fun starOnClick(text: String)
+    fun starOnClick()
     fun onError(text: String)
     fun setList(message: List<Message>)
+    fun setTitleToolbar(titleToolbar:String)
 }

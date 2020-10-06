@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
-    android:orientation="horizontal"
-    android:background="#ffffff">
+    android:background="#ffffff"
+    android:orientation="horizontal">
 
     <AutoCompleteTextView
         android:id="@+id/autoTv"
@@ -16,26 +16,38 @@
         android:layout_weight="1.0"
         android:background="#ffffff"
         android:ems="10"
-        android:hint="Введите сообщение" />
-<FrameLayout
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+        android:hint="@string/hintACTV"
+        android:maxHeight="150dp" />
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/galireya"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="10dp"
+            android:visibility="visible"
+            app:srcCompat="@android:drawable/ic_menu_gallery" />
+
+        <ImageView
+            android:id="@+id/popapEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="10dp"
+            android:visibility="gone"
+            app:srcCompat="@android:drawable/ic_menu_edit" />
+    </FrameLayout>
 
     <ImageView
-        android:id="@+id/check"
-        android:layout_margin="10dp"
-        android:layout_gravity="center_vertical"
+        android:id="@+id/send"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:srcCompat="@android:drawable/checkbox_on_background" />
-    <ImageView
+        android:layout_gravity="center_vertical"
+        android:layout_margin="10dp"
         android:visibility="visible"
-        android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:layout_margin="10dp"
         app:srcCompat="@android:drawable/ic_menu_send" />
-</FrameLayout>
 </LinearLayout>
