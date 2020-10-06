@@ -2,6 +2,7 @@ package com.example.myofflinebot.bots
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.widget.Toast
 import com.example.myofflinebot.comon.CustomSharedPreferens
 import com.example.myofflinebot.presentation.MainPresenter
 import io.reactivex.Single
@@ -22,17 +23,21 @@ class BotJob(val context: Context) {
                     return@create
                 } else {
                     tagCustomSP0.save(context, text)
-                    if (text.trim() == "/menu" && valueSP == "/menu") {
-                        mainPresenter.setTitleToolbar("Меню")
-                        subsciber.onSuccess("Вы в меню. \n 1. Калькулятор \n 2. Анекдоты")
-                        return@create
-                    } else if (text.trim() == "/calc") {
-                        subsciber.onSuccess("Вы перешли в калькулятор. \n Введите свой пример")
-                        mainPresenter.setTitleToolbar("Калькулятор")
-                        return@create
-                    } else if (text.trim() == "/jokes") {
-                        mainPresenter.setTitleToolbar("Анекдоты")
-                        getTagJokes(subsciber)
+                    when {
+                        text.trim() == "/menu" -> {
+                            mainPresenter.setTitleToolbar("Меню")
+                            subsciber.onSuccess("Вы в меню. \n 1. Калькулятор \n 2. Анекдоты")
+                            return@create
+                        }
+                        text.trim() == "/calc" -> {
+                            subsciber.onSuccess("Вы перешли в калькулятор. \n Введите свой пример")
+                            mainPresenter.setTitleToolbar("Калькулятор")
+                            return@create
+                        }
+                        text.trim() == "/jokes" -> {
+                            mainPresenter.setTitleToolbar("Анекдоты")
+                            getTagJokes(subsciber,mainPresenter)
+                        }
                     }
                 }
             } else {
@@ -65,11 +70,12 @@ class BotJob(val context: Context) {
                             return@subscribe
                         })
                 }
+                if (text.trim()=="Да") getTagJokes(subsciber,mainPresenter)
             }
         }
     }
 
-    private fun getTagJokes(subscriber: SingleEmitter<String>) {
+    private fun getTagJokes(subscriber: SingleEmitter<String>,mainPresenter: MainPresenter) {
         var textTag: String
         val value = CustomSharedPreferens(LIST_TAG_ANECDOTE).getValueSP(context)
         if (value == "0") {
@@ -78,20 +84,26 @@ class BotJob(val context: Context) {
                 .subscribeOn(Schedulers.io())
                 .subscribe({
                     val strBuilder = StringBuilder()
-                    it.split(",").forEach {
-                        textTag = it.split(":")[0]
+                    val listTag= mutableListOf<String>()
+                    it.split(",").forEach {res->
+                        textTag = res.split(":")[0]
                         strBuilder.append(textTag.plus("\n"))
+                        listTag.add(textTag)
                     }
+                    mainPresenter.viewState.setPanelMessendger(listTag)
                     subscriber.onSuccess(strBuilder.toString())
                 }, {
                     subscriber.onError(it)
                 })
         } else {
             val strBuilder = StringBuilder()
+            val listTag= mutableListOf<String>()
             value.split(",").forEach {
                 textTag = it.split(":")[0]
                 strBuilder.append(textTag.plus("\n"))
+                listTag.add(textTag)
             }
+            mainPresenter.viewState.setPanelMessendger(listTag)
             subscriber.onSuccess(strBuilder.toString())
         }
     }

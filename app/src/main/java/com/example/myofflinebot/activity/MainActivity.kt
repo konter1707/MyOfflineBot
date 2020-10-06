@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.PopupMenu
@@ -21,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myofflinebot.R
 import com.example.myofflinebot.adapter.MainAdapter
 import com.example.myofflinebot.bots.BotJob
+import com.example.myofflinebot.bots.ParseJokes
 import com.example.myofflinebot.comon.CustomSharedPreferens
 import com.example.myofflinebot.data.db.entity.Message
 import com.example.myofflinebot.fragment.MyDialog
@@ -41,20 +43,36 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
         setContentView(R.layout.main)
         registerForContextMenu(rv)
         when (CustomSharedPreferens(BotJob.TAG_BOT).getValueSP(this)) {
-            mTag[0] -> toolbar.title = "Меню"
+            mTag[0] -> toolbar.title = getString(R.string.menu)
             mTag[1] -> toolbar.title = "Калькулятор"
-            mTag[2] -> toolbar.title = "Анекдоты"
+            mTag[2] ->{
+                toolbar.title = getString(R.string.jokes)
+                val value=CustomSharedPreferens(BotJob.LIST_TAG_ANECDOTE).getValueSP(this)
+                val strBuilder = StringBuilder()
+                val listTag= mutableListOf<String>()
+                value.split(",").forEach {
+                    val textTag = it.split(":")[0]
+                    strBuilder.append(textTag.plus("\n"))
+                    listTag.add(textTag)
+                }
+                mainPresenter.viewState.setPanelMessendger(listTag)
+            }
         }
         setSupportActionBar(toolbar)
         mainPresenter.setListener(this)
         send.setOnClickListener(this)
-        galireya.setOnClickListener(this)
+        gallery.setOnClickListener(this)
         val adapterEditText =
             ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, mTag)
         autoTv.setAdapter(adapterEditText)
         autoTv.threshold = 1
         autoTv.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
             val userText = adapterView.getItemAtPosition(i).toString()
+            if (listtagjokes.visibility==View.VISIBLE &&(userText.trim()== mTag[0] || userText.trim()== mTag[1])){
+                listtagjokes.visibility=View.GONE
+            }
+            val input=getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            input.hideSoftInputFromWindow(autoTv.applicationWindowToken,InputMethodManager.HIDE_NOT_ALWAYS)
             mainPresenter.addUserMessage(this, setMessage(true, userText))
             mainPresenter.getMessageBot(this, userText)
         }
@@ -62,13 +80,18 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            R.id.galireya -> {
+            R.id.gallery -> {
                 val photoPickerIntent = Intent(Intent.ACTION_PICK)
                 photoPickerIntent.type = "image/*"
                 startActivityForResult(photoPickerIntent, GALLERY_REQUEST)
             }
             R.id.send -> {
                 val userText: String = autoTv.text.toString()
+                if (listtagjokes.visibility==View.VISIBLE &&(userText.trim()== mTag[0] || userText.trim()== mTag[1])){
+                    listtagjokes.visibility=View.GONE
+                }
+                val input=getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                input.hideSoftInputFromWindow(autoTv.applicationWindowToken,InputMethodManager.HIDE_NOT_ALWAYS)
                 mainPresenter.addUserMessage(this, setMessage(true, userText))
                 mainPresenter.getMessageBot(this, userText)
             }
@@ -98,6 +121,19 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
         toolbar.title = titleToolbar
     }
 
+    override fun setPanelMessendger(list: MutableList<String>) {
+        listtagjokes.visibility=View.VISIBLE
+        listview.setOnItemClickListener { adapterView, view, position, l ->
+            listtagjokes.visibility=View.GONE
+            val textTag = list[position].split("(")[0].trim()
+            mainPresenter.addUserMessage(this, setMessage(true, textTag))
+            mainPresenter.getMessageBot(this, textTag)
+        }
+        val adapter=ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,list)
+        listview.adapter=adapter
+    }
+
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
@@ -122,7 +158,6 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
             R.id.clear -> {
                 val manager = supportFragmentManager
                 val myDialog = MyDialog(
-                    this,
                     mainPresenter,
                     setMessage(false, ""),
                     "Очистить все",
@@ -133,7 +168,6 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
             R.id.exit -> {
                 val manager = supportFragmentManager
                 val myDialog = MyDialog(
-                    this,
                     mainPresenter,
                     setMessage(false, ""),
                     "Выход",
@@ -148,7 +182,6 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
     override fun onClickItem(message: Message) {
         val manager = supportFragmentManager
         val myDialog = MyDialog(
-            this,
             mainPresenter,
             message,
             "Удалить",
@@ -164,7 +197,7 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
             when (menuItem.itemId) {
                 R.id.popapEdit -> {
                     popapEdit.visibility = View.VISIBLE
-                    galireya.visibility = View.GONE
+                    gallery.visibility = View.GONE
                     send.visibility = View.GONE
                     autoTv.setText(message.mesegaPipla)
                     popapEdit.setOnClickListener{
@@ -172,7 +205,7 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
                         mainPresenter.updateMessage(this, editMessage, message.id)
                         autoTv.setText("")
                         popapEdit.visibility = View.GONE
-                        galireya.visibility = View.VISIBLE
+                        gallery.visibility = View.VISIBLE
                         send.visibility = View.VISIBLE
                     }
                     true
@@ -189,7 +222,6 @@ class MainActivity : MvpAppCompatActivity(), MainView, MainAdapter.OnDelitListen
                 R.id.popapDelet -> {
                     val manager = supportFragmentManager
                     val myDialog = MyDialog(
-                        this,
                         mainPresenter,
                         message,
                         "Удалить",

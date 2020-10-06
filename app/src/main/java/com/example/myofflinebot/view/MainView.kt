@@ -12,4 +12,5 @@ interface MainView : MvpView {
     fun onError(text: String)
     fun setList(message: List<Message>)
     fun setTitleToolbar(titleToolbar:String)
+    fun setPanelMessendger( list: MutableList<String>)
 }

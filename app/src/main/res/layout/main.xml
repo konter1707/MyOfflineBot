@@ -18,5 +18,5 @@
     <include
         layout="@layout/panelmessendger"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize" />
+        android:layout_height="wrap_content" />
 </LinearLayout>

@@ -8,4 +8,6 @@
     <string name="popapCopy">Копировать</string>
     <string name="delete">Удалить</string>
     <string name="hintACTV">Введите сообщение</string>
+    <string name="menu">Меню</string>
+    <string name="jokes">Анекдоты</string>
 </resources>

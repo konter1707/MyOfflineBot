@@ -13,7 +13,7 @@ import moxy.InjectViewState
 
 @InjectViewState
 class MainPresenter() : BasePresenter<MainView>() {
-    fun updateMessage(context: Context, messagePeople: String, id: Long){
+    fun updateMessage(context: Context, messagePeople: String, id: Long) {
         MessageDB.getAppDateBase(context)!!.getMessageDao().updateMessage(messagePeople, id)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
@@ -25,6 +25,7 @@ class MainPresenter() : BasePresenter<MainView>() {
                 }
             ).autoDisposable()
     }
+
     fun deleteListMessage(context: Context) {
         MessageDB.getAppDateBase(context)!!.getMessageDao().delite()
             .observeOn(AndroidSchedulers.mainThread())
@@ -69,8 +70,6 @@ class MainPresenter() : BasePresenter<MainView>() {
             .subscribeOn(Schedulers.io())
             .subscribe(
                 {
-
-                    viewState.starOnClick()
                     setListener(context)
                 },
                 { error ->

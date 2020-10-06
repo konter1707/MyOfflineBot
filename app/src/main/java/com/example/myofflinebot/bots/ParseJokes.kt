@@ -25,7 +25,7 @@ class ParseJokes(val context: Context) {
                         textJokes = if (!element.select("br").isEmpty())
                             element.html().replace("<br>", "\n")
                          else element.text()
-                        subscriber.onSuccess(textJokes)
+                        subscriber.onSuccess(textJokes.plus("\n Ещё?"))
                         return@create
                     }
                     }
