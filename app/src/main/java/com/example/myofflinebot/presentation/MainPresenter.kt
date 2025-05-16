@@ -12,31 +12,23 @@ import io.reactivex.schedulers.Schedulers
 import moxy.InjectViewState
 
 @InjectViewState
-class MainPresenter() : BasePresenter<MainView>() {
+class MainPresenter : BasePresenter<MainView>() {
+
     fun updateMessage(context: Context, messagePeople: String, id: Long) {
         MessageDB.getAppDateBase(context)!!.getMessageDao().updateMessage(messagePeople, id)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
-            .subscribe(
-                {
-                    setListener(context)
-                }, {
-
-                }
-            ).autoDisposable()
+            .subscribe { setListener(context) }
+            .autoDisposable()
     }
 
     fun deleteListMessage(context: Context) {
-        MessageDB.getAppDateBase(context)!!.getMessageDao().delite()
+        MessageDB.getAppDateBase(context)!!.getMessageDao().delete()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
-            .subscribe(
-                {
-                    setListener(context)
-                },
-                {}).autoDisposable()
+            .subscribe { setListener(context) }
+            .autoDisposable()
     }
-
 
     fun addUserMessage(context: Context, message: Message) {
         MessageDB.getAppDateBase(context)!!.getMessageDao().insertRx(message)
@@ -49,19 +41,19 @@ class MainPresenter() : BasePresenter<MainView>() {
                 },
                 { error ->
                     viewState.onError("" + error)
-                }).autoDisposable()
+                }
+            )
+            .autoDisposable()
     }
-
 
     fun getMessageBot(context: Context, userText: String) {
         BotJob(context).listBotJob(userText, this)
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                addBotMessage(context, Message(0, false, it))
-            }, {
-                addBotMessage(context, Message(0, false, it.message.toString()))
-            }
-            ).autoDisposable()
+            .subscribe(
+                { addBotMessage(context, Message(0, false, it)) },
+                { addBotMessage(context, Message(0, false, it.message.toString())) }
+            )
+            .autoDisposable()
     }
 
     private fun addBotMessage(context: Context, message: Message) {
@@ -69,12 +61,10 @@ class MainPresenter() : BasePresenter<MainView>() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe(
-                {
-                    setListener(context)
-                },
-                { error ->
-                    viewState.onError("" + error)
-                }).autoDisposable()
+                { setListener(context) },
+                { error -> viewState.onError("" + error) }
+            )
+            .autoDisposable()
     }
 
     fun setListener(context: Context) {
@@ -88,25 +78,24 @@ class MainPresenter() : BasePresenter<MainView>() {
                         return@subscribe
                     }
                     viewState.setList(result)
-                }, { error ->
-                    viewState.onError("Произощла ошибка")
-                }
-            ).autoDisposable()
+                },
+                { viewState.onError("Произошла ошибка") }
+            )
+            .autoDisposable()
     }
 
     fun deleteMessage(context: Context, message: Message) {
         MessageDB.getAppDateBase(context)!!.getMessageDao().deleteMessage(message)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
-            .subscribe({
-                setListener(context)
-            }, { error ->
-                viewState.onError("")
-            }).autoDisposable()
+            .subscribe(
+                { setListener(context) },
+                { viewState.onError("") }
+            )
+            .autoDisposable()
     }
 
     fun setTitleToolbar(titleToolbar: String) {
         viewState.setTitleToolbar(titleToolbar)
     }
 }
-

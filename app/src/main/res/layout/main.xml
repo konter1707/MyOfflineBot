@@ -10,12 +10,14 @@
         android:layout_height="?attr/actionBarSize" />
 
     <include
+        android:id="@+id/container_list"
         layout="@layout/listmessendger"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:layout_weight="1.0" />
 
     <include
+        android:id="@+id/buttonPanel"
         layout="@layout/panelmessendger"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

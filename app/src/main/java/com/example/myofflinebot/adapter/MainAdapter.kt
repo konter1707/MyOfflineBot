@@ -1,5 +1,6 @@
 package com.example.myofflinebot.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,7 +27,7 @@ class MainAdapter(private val list: List<Message>, private  val delitListener: O
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) =
-        if (list[position].out == true) {
+        if (list[position].out) {
             val h: OutHolder = holder as OutHolder
             h.itemView.setOnClickListener { view ->
                 delitListener.onClickItem(list[position])

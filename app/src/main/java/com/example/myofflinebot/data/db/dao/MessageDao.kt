@@ -9,15 +9,17 @@ import io.reactivex.Single
 interface MessageDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertRx(message: Message): Completable
+
     @Delete
     fun deleteMessage(message: Message): Completable
 
     @Query("DELETE FROM Message")
-    fun delite(): Completable
+    fun delete(): Completable
 
     @Query("SELECT * FROM Message")
     fun getMessage(): Single<List<Message>>
+
     @Query("UPDATE message SET mesegaPipla=:messagePipla WHERE id=:id")
-    fun  updateMessage(messagePipla: String,id: Long):Completable
+    fun updateMessage(messagePipla: String, id: Long): Completable
 
 }
